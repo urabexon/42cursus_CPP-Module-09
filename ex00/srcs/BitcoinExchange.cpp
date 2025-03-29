@@ -3,185 +3,202 @@
 /*                                                        :::      ::::::::   */
 /*   BitcoinExchange.cpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hurabe <hurabe@student.42.fr>              +#+  +:+       +#+        */
+/*   By: urabex <urabex@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/27 16:36:59 by hurabe            #+#    #+#             */
-/*   Updated: 2025/03/27 19:17:04 by hurabe           ###   ########.fr       */
+/*   Updated: 2025/03/29 16:23:12 by urabex           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "BitcoinExchange.hpp"
 
-BitcoinExchange::BitcoinExchange() {}
+// コンストラクタ
+BitcoinExchange::BitcoinExchange() : _dataBase() {}
 
-BitcoinExchange::BitcoinExchange(const BitcoinExchange &src) {
-	*this = src;
+// コピーコンストラクタ
+BitcoinExchange::BitcoinExchange(const BitcoinExchange &src) : _dataBase(src._dataBase) {}
+
+// 代入演算子オーバーロード
+BitcoinExchange &BitcoinExchange::operator=(const BitcoinExchange &src) {
+	if (&src != this)
+		_dataBase = src._dataBase;
+	return (*this);
 }
 
-BitcoinExchange& BitcoinExchange::operator=(const BitcoinExchange &src) {
-	if (this != &src)
-		*this = src;
-	return *this;
-}
-
+// デストラクタ
 BitcoinExchange::~BitcoinExchange() {}
 
-bool	isfloat(std::string &str) {
-	bool dot = false;
-	for(size_t i = 0; i < str.length(); i++ ) {
-		if (str.at(i) == '.' && dot == false) {
-			dot = true;
+// 日付文字列を解析して std::tm構造体に変換する関数
+bool BitcoinExchange::parseDateTime(const std::string &date, std::tm &time) const {
+	std::istringstream ss(date);
+	// 日付表示の取り扱いを一貫したものにするため、標準のロケールを設定
+	ss.imbue(std::locale::classic());
+
+	// 最初に見つかった数字をtm_yearに、次に見つかった文字をdelimに、次の数字をtm_monに・・・と格納していく
+	char delim;
+	ss >> time.tm_year >> delim >> time.tm_mon >> delim >> time.tm_mday;
+	if (ss.fail() || delim != '-')
+		return (false);
+	
+	// 構造体の年は1900年からの差分、月は0-11で格納されるため、西暦・1-12表記に直す
+	time.tm_year -= 1900;
+	time.tm_mon -= 1;
+	
+	return (true);
+}
+
+// 日付バリデーション用の関数
+bool BitcoinExchange::isValidDate(const std::string &date) const {
+	// 日付形式が不正な場合はfalse
+	if (date.length() != 10 || date.at(4) != '-' || date.at(7) != '-')
+		return (false);
+
+	// 時間用の構造体を初期化し、日付を取得する
+	std::tm	time = {};
+	if (!parseDateTime(date, time))
+		return (false);
+
+	// time_t型に変換できるかどうかで日付が正しいかチェックする
+	std::time_t t = std::mktime(&time);
+	if (t == -1)
+		return (false);
+
+	// 一応日付文字列と変換後の日付が同じであることを確認
+	char buf[11];
+	std::strftime(buf, sizeof(buf), "%Y-%m-%d", &time);
+
+	return (date == buf);
+}
+
+// 入力行のフォーマットを検証する関数
+bool BitcoinExchange::isValidInputLine (const std::string &line, std::string &date, float &val) const {
+	std::istringstream ssl(line);
+	std::string value;
+
+	// '|'の前後を文字列として取得する
+	if (!std::getline(ssl, date, '|') || date.empty() || !std::getline(ssl, value) || value.empty()) {
+		std::cout << ERROR_INPUT_LINE << line << std::endl;
+		return (false);
+	}
+
+	// 文字列を整える
+	date.erase(date.size() - 1); // 末尾の空白を削除
+	value.erase(value.begin());  // 先頭の空白を削除
+
+	// 桁数が大きすぎる場合はエラー
+	if (value.length() > 10) {
+		std::cout << "Error: value is too large to process." << std::endl;
+		return (false);
+	}
+
+	// float型に変換できるか確認
+	std::istringstream ss(value);
+	ss >> val;
+	if (ss.fail() || !ss.eof()) {
+		std::cout << ERROR_INVALID_VAL << std::endl;
+		return (false);
+	}
+
+	return (true);
+}
+
+// 入力行のフォーマットを検証する関数
+bool BitcoinExchange::isValidValue(const float val) const {
+	if (val < 0) {
+		std::cout << ERROR_NEGATIVE_NUM << std::endl;
+		return (false);
+	}
+	if (val > 1000) {
+		std::cout << ERROR_LARGE_NUM << std::endl;
+		return (false);
+	}
+	return (true);
+}
+
+// 指定された日付のレートを取得する関数
+float BitcoinExchange::getExchangeRate(const std::string &date) const {
+	// 完全一致する日付があればレートを返す
+	std::map<std::string, float>::const_iterator it = _dataBase.find(date);
+	if (it != _dataBase.end())
+		return (it->second);
+
+	// 一致する日付がなければ最も近い過去の日付を検索し、先頭なら0を返す
+	std::map<std::string, float>::const_iterator near = _dataBase.lower_bound(date);
+	if (near == _dataBase.begin())
+		return (0.0f);
+	--near;
+	return (near->second);
+}
+
+// input.txtからデータを読み取り、変換結果を出力する関数
+void BitcoinExchange::outputBitcoinExchange(const char *inputFile) {
+	// ファイルが開けられるか
+	std::ifstream file(inputFile);
+	if (!file.is_open())
+		throw (ERROR_OPEN_FILE);
+
+	std::string line;
+
+	// １行目はヘッダーなのでスキップ
+	std::getline(file, line);
+
+	// ２行目以降をmapに格納する
+	while (std::getline(file, line)) {
+		std::string date;
+		float	val;
+		float	rate;
+
+		// inputの記述形式に問題なければ日付を取得
+		if (!isValidInputLine(line, date, val))
+			continue;
+		// 日付の整合性チェック
+		if (!isValidDate(date)) {
+			std::cout << ERROR_INPUT_LINE << line << std::endl;
 			continue;
 		}
-		if (!std::isdigit(str.at(i)))
-			return false;
-	}
-	if (str.at(str.length() - 1) == '.')
-		return false;
-	return true;
-}
-
-BitcoinExchange::BitcoinExchange(const std::string &file) {
-	std::fstream dataFile(file.c_str());
-	if (!dataFile)
-		throw BitcoinExchange::CantOpenDataFileException();
-	std::string line;
-	// first line skip 
-	std::getline(dataFile, line);
-	size_t	linecount = 0;
-	while (std::getline(dataFile, line)) {
-		++linecount;
-		std::string::size_type split_pos = line.find(',');
-		if (split_pos == std::string::npos) {
-			std::cerr << "Invalid argument in data, on line " << linecount << std::endl;
-			continue ;
-		}
-		std::string	date = line.substr(0, split_pos);
-		std::string	rate_str = line.substr(split_pos + 1);
-		//!rateに制限があるならvalueチェックを変える
-		if (dateCheck(date) == false || isfloat(rate_str) == false) {
-			std::cerr << "Invalid date in data, on line " << linecount << std::endl;
+		// 値の整合性チェック
+		if (!isValidValue(val))
 			continue;
-		}
-		double num;
-		std::istringstream(rate_str) >> num;
-		_data[date] = num;
+		// 問題なければレートを確認して出力（一致する日付がなければ近い日付を参照する）
+		rate = getExchangeRate(date);
+		std::cout << date << " => " << val << " = " << val * rate << std::endl;
 	}
-	dataFile.close();
-	if (_data.size() == 0)
-		throw NoValidDataException();
+
+	file.close();
 }
 
-bool	BitcoinExchange::dateCheck(std::string &string) {
-	//valid year 2000 ~ 2060: month 1~12
-	std::istringstream			str(string);
-	std::string	year, month, date, check;
-	if (!std::getline(str, year, '-'))
-		return false;
-	if (!std::getline(str, month, '-'))
-		return false;
-	if (!std::getline(str, date, '-'))
-		return false;
-	if (std::getline(str, check, '-'))
-		return false;
-	if (!checkYear(year))
-		return false;
-	if (!checkMonthDate(year, month, date))
-		return false;
-	return true;
-}
+// data.csvからデータベースを読み込む関数
+void BitcoinExchange::getDataBase() {
+	size_t	delim;
+	float	rate;
 
-bool	is_num(std::string &year) {
-	for(size_t i = 0; i < year.length(); i++) {
-		if (!std::isdigit(year.at(i)))
-			return false;
-	}
-	return true;
-}
+	// ファイルが開けられるか
+	std::ifstream file(DATABASE);
+	if (!file.is_open())
+		throw (ERROR_OPEN_FILE);
 
-bool	BitcoinExchange::checkYear(std::string &year) {
-	if (year.size() != 4 || !is_num(year))
-		return false;
-	size_t	num;
-	std::istringstream(year) >> num;
-	return 2000 <= num && num <= 2060;
-}
-
-bool	BitcoinExchange::checkMonthDate(std::string &year, std::string &month, std::string &date) {
-	if (!(month.size() == 1 || month.size() == 2) || !is_num(month))
-		return false;
-	else if (!(date.size() == 1 || date.size() == 2) || !is_num(date))
-		return false;
-	size_t	m, d;
-	std::istringstream(month) >> m;
-	std::istringstream(date) >> d;
-	if (m == 1 || m == 3 || m == 5 || m == 7 || m == 8 || m == 10 || m == 12) {
-		return 1 <= d && d <= 31;
-	} else if (m == 4 || m == 6 || m == 9 || m == 11) {
-		return 1 <= d && d <= 30;
-	} else if (m == 2) {
-		int y;
-		std::istringstream(year) >> y;
-		if (y % 4 == 0)
-			return 1 <= d && d <= 29;
-		else
-			return 1 <= d && d <= 28;
-	}
-	return false;
-}
-
-bool	BitcoinExchange::valueCheck(std::string &str) {
-	if (!isfloat(str))
-		return false;
-	float num;
-	std::istringstream(str) >> num;
-	return (num >= 0 && num <= 1000);
-}
-
-void	BitcoinExchange::analyze(const std::string &inputFile) {
-	std::fstream InputFile(inputFile.c_str());
-	if (!InputFile)
-		throw BitcoinExchange::CantOpenInputFileException();
 	std::string line;
-	// first line skip
-	std::getline(InputFile, line);
-	while (std::getline(InputFile, line)) {
-		std::istringstream stream(line);
-		std::string	date, value;
-		char		spliter;
 
-		if (!(stream >> date >> spliter >> value)) {
-			std::cerr << "Error: Format error: Syntax error" << std::endl;
-			continue ;
-		} else if (spliter != '|') {
-			std::cerr << "Error: Format error: delimiter has to be '|'" << std::endl;
-			continue ;
-		} else if (!dateCheck(date)) {
-			std::cerr << "Error: Format error: Invalid date" << std::endl;
-			continue ;
-		} else if (!valueCheck(value)) {
-			std::cerr << "Error: Format error: Invalid value" << std::endl;
-			continue ;
-		}
-		double rate = findRate(date);
-		if (rate < 0) {
-			std::cerr << "Error: no exchange rate beofore this date" << std::endl;
-		} else {
-			double val;
-			std::istringstream(value) >> val;
-			std::cout << date << " => " << value << " = " <<  val * rate << std::endl;
-		}
-	}
-	InputFile.close();
-	return ;
-}
+	// １行目はヘッダーなのでスキップ
+	std::getline(file, line);
 
-double	BitcoinExchange::findRate(std::string &date) {
-	std::map<std::string, double>::iterator it = _data.upper_bound(date);
-	if (it != _data.begin()) {
-		it--;
-		return it->second;
-	} else {
-		return -1;
+	// ２行目以降をmapに格納する
+	while (std::getline(file, line)) {
+		// 区切り文字の位置を取得する、区切り文字がなければ次の行へ
+		delim = line.find(',');
+		if (delim == std::string::npos)
+			continue;
+
+		// 日付とレートを取得し、日付に問題がなければmapに格納
+		std::string	date = line.substr(0, delim);
+		std::istringstream(line.substr(delim + 1)) >> rate;
+		if (isValidDate(date))
+			_dataBase[date] = rate;
 	}
+
+	// もしファイルが空ならエラー
+	if (_dataBase.empty())
+		throw (ERROR_FILE_EMPTY);
+
+	file.close();
 }
