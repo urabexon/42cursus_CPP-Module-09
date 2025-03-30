@@ -6,7 +6,7 @@
 /*   By: hurabe <hurabe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/27 19:49:52 by hurabe            #+#    #+#             */
-/*   Updated: 2025/03/30 22:51:03 by hurabe           ###   ########.fr       */
+/*   Updated: 2025/03/30 23:08:44 by hurabe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,6 +107,7 @@ std::vector<pairs>	vector_sort(std::vector<pairs> arr) {
 	// 奇数個の場合、余った要素をsmallに入れる
 	if (arr.size() % 2 != 0)
 		small.push_back(arr[arr.size() - 1]);
+	
 
 	// smallをグループ単位でbinary searchで挿入していく
 	size_t	count = 1, group_passed = 0, groupsize;

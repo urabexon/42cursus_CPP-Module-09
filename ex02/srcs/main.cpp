@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: urabex <urabex@student.42.fr>              +#+  +:+       +#+        */
+/*   By: hurabe <hurabe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/27 19:49:51 by hurabe            #+#    #+#             */
-/*   Updated: 2025/03/30 15:52:26 by urabex           ###   ########.fr       */
+/*   Updated: 2025/03/30 23:08:05 by hurabe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,6 +81,7 @@ int main(int argc, char** argv) {
 	}
 	// vector のソート時間を表示する
 	std::cout << "Time to process a range of " << vec.size() << " elements with " << "std::vector : " << time << " us" << std::endl;
+	
 	// dequeでのソート処理スタート(vectorと同じようにソート、時間計測する)
 	start = clock();
 	std::deque<pairs> res2 = deque_sort(deq);
