@@ -3,32 +3,18 @@
 /*                                                        :::      ::::::::   */
 /*   PmergeMe.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: urabex <urabex@student.42.fr>              +#+  +:+       +#+        */
+/*   By: hurabe <hurabe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/27 19:49:52 by hurabe            #+#    #+#             */
-/*   Updated: 2025/03/30 15:27:35 by urabex           ###   ########.fr       */
+/*   Updated: 2025/03/30 22:51:03 by hurabe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "PmergeMe.hpp"
 
-// コンストラクタ
-PmergeMe::PmergeMe() {}
-
-// コピーコンストラクタ
-PmergeMe::PmergeMe(const PmergeMe &src) {
-	*this = src;
-}
-
-// 代入演算子オーバーロード
-PmergeMe &PmergeMe::operator=(const PmergeMe &src) {
-	if (this != &src)
-		*this = src;
-	return *this;
-}
-
-// デストラクタ
-PmergeMe::~PmergeMe() {}
+// 比較用のカウンタ
+//int g_counterVct = 0;
+//int g_counterDeq = 0;
 
 // ソートされたペアの数列を出力する関数(ソート済みのペア数列を受け取る)
 void	display(std::vector<pairs> out) {
@@ -64,6 +50,7 @@ size_t	BS_vec(std::vector<pairs> res, size_t right, int value) {
 	size_t left = 0, mid;
 
 	while (left <= right) {
+		//g_counterVct++;
 		mid = left + (right - left) / 2;
 		if (res[mid].num == value) {
 			return mid;
@@ -150,6 +137,7 @@ size_t	BS_deq(std::deque<pairs> res, size_t right, int value) {
 	size_t left = 0, mid;
 
 	while (left <= right) {
+		//g_counterDeq++;
 		mid = left + (right - left) / 2;
 		if (res[mid].num == value) {
 			return mid;

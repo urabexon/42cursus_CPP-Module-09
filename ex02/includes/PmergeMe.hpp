@@ -3,12 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   PmergeMe.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: urabex <urabex@student.42.fr>              +#+  +:+       +#+        */
+/*   By: hurabe <hurabe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/27 19:49:48 by hurabe            #+#    #+#             */
-/*   Updated: 2025/03/30 15:32:11 by urabex           ###   ########.fr       */
+/*   Updated: 2025/03/30 22:50:46 by hurabe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+// vector → 処理が高速のため
+// deque → ペアでの処理がやりやすくなるため
 
 #ifndef PMERGEME_HPP
 #define PMERGEME_HPP
@@ -19,6 +22,10 @@
 #include <algorithm> // sortなどのアルゴリズム用
 #include <cassert>   // デバッグなどのassert用
 #include <deque>     // dequeコンテナ
+
+// 比較関数カウント用
+//extern int g_counterVct;
+//extern int g_counterDeq;
 
 /*
   ペアの情報を保持する構造体
@@ -50,15 +57,5 @@ std::vector<pairs> 	vector_sort(std::vector<pairs> vec);
   dequeに格納されたペアをMerge-Insertion Sortでソートする
 */
 std::deque<pairs>	deque_sort(std::deque<pairs> deq);
-
-
-// 正統派正規クラス形式を一応記述(課題要件上)
-class PmergeMe {
-	private:
-		PmergeMe();
-		PmergeMe(const PmergeMe &src);
-		PmergeMe &operator=(const PmergeMe &src);
-		~PmergeMe(); 
-};
 
 #endif
