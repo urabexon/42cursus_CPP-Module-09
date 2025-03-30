@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   RPN.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: urabex <urabex@student.42.fr>              +#+  +:+       +#+        */
+/*   By: hurabe <hurabe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/27 19:33:04 by hurabe            #+#    #+#             */
-/*   Updated: 2025/03/30 13:46:36 by urabex           ###   ########.fr       */
+/*   Updated: 2025/03/30 22:41:23 by hurabe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,8 +30,12 @@ RPN &RPN::operator=(RPN &src) {
 // デストラクタ
 RPN::~RPN() {}
 
-// 計算処理用の関数(a,bがオペランド, signが演算子)
-long	calculate(int a, int b, char sign) {
+/*
+  計算処理用の関数(a,bがオペランド, signが演算子)
+  INT_MAXを超えた時に対応できるようにlongにしておく
+  - ./RPN "1 1 /" 
+*/
+long	RPN::calculate(long a, long b, char sign) {
 	if (sign == '+')
 		return a + b;
 	else if (sign == '-')
@@ -39,10 +43,18 @@ long	calculate(int a, int b, char sign) {
 	else if (sign == '*')
 		return a * b;
 	else
+	{
+		if (b == 0)
+			throw SyntaxErrorException();
 		return a / b;
+	}
 }
 
-// 逆ポーランド記法の数式を計算する関数(引数は逆ポーランド記法の文字列)
+/*
+  逆ポーランド記法の数式を計算する関数(引数は逆ポーランド記法の文字列) 
+  - ./RPN "0 2 - 8 8 8 8 8 8 8 8 8 8 * * * * * * * * * * 0 1 - /"(INT_MAXを超えたとき)
+  - ./RPN "0 2 - 4 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 * * * * * * * * * * * * * * * * * * * * * 0 1 - /"(LONGケース)
+*/
 void	RPN::calc(std::string str) {
 	// 空文字列は例外処理
 	if (str.empty())
@@ -66,7 +78,10 @@ void	RPN::calc(std::string str) {
 			int	num2 = _strage.top();
 			_strage.pop();
 			// 計算結果をstackにpushする
-			_strage.push(calculate(num2, num1, (*it)));
+			long res = calculate(num2, num1, (*it));
+			if (res > INT_MAX || res < INT_MIN)
+				throw SyntaxErrorException();
+			_strage.push(res);
 		}
 	}
 	// スタックの要素数が1でない場合もエラー
