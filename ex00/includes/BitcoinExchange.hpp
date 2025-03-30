@@ -3,12 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   BitcoinExchange.hpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: urabex <urabex@student.42.fr>              +#+  +:+       +#+        */
+/*   By: hurabe <hurabe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/27 16:37:01 by hurabe            #+#    #+#             */
-/*   Updated: 2025/03/29 16:10:45 by urabex           ###   ########.fr       */
+/*   Updated: 2025/03/30 22:32:32 by hurabe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+// キーと値の連携がやりやすかったのでmapで実装
 
 #ifndef BITCOINEXCHANGE_HPP
 #define BITCOINEXCHANGE_HPP
