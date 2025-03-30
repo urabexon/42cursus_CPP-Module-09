@@ -3,48 +3,34 @@
 /*                                                        :::      ::::::::   */
 /*   RPN.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hurabe <hurabe@student.42.fr>              +#+  +:+       +#+        */
+/*   By: urabex <urabex@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/27 19:33:04 by hurabe            #+#    #+#             */
-/*   Updated: 2025/03/27 19:38:32 by hurabe           ###   ########.fr       */
+/*   Updated: 2025/03/30 13:46:36 by urabex           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "RPN.hpp"
 
+// コンストラクタ(スタック初期化)
 RPN::RPN() {}
 
-RPN::~RPN() {}
-
+// コピーコンストラクタ
 RPN::RPN(RPN &src) {
 	*this = src;
 }
 
-RPN&	RPN::operator=(RPN &src) {
+// 代入演算子オーバーロード
+RPN &RPN::operator=(RPN &src) {
 	if (this != &src)
 		*this = src;
 	return *this;
 }
 
-bool	isnum(std::string &year) {
-	for(size_t i = 0; i < year.length(); i++ ) {
-		if (!std::isdigit(year.at(i)))
-			return false;
-	}
-	return true;
-}
+// デストラクタ
+RPN::~RPN() {}
 
-bool	issign(std::string &s) {
-	if (s == "*" || s == "/" || s == "+" || s == "-")
-		return true;
-	return false;
-}
-
-void	err() {
-	std::cout << "Error: Invalid arg" << std::endl;
-	return ;
-}
-
+// 計算処理用の関数(a,bがオペランド, signが演算子)
 long	calculate(int a, int b, char sign) {
 	if (sign == '+')
 		return a + b;
@@ -56,25 +42,34 @@ long	calculate(int a, int b, char sign) {
 		return a / b;
 }
 
+// 逆ポーランド記法の数式を計算する関数(引数は逆ポーランド記法の文字列)
 void	RPN::calc(std::string str) {
+	// 空文字列は例外処理
 	if (str.empty())
 		throw SyntaxErrorException();
 
+	// 数式解析スタート
 	for (std::string::iterator it = str.begin(); it != str.end(); it++) {
+		// 空白飛ばす
 		if (std::isspace(*it))
 			continue ;
+		// 数値の場合はstackにpushする, 演算子の場合はstackの2つの要素で計算する
 		if (std::isdigit(*it)) {
 			_strage.push((*it) - '0');
 		} else {
+			// スタックの要素数が2未満の場合は例外
 			if (_strage.size() < 2)
 				throw SyntaxErrorException();
+			// スタックの上2つの要素をpopする
 			int	num1 = _strage.top();
 			_strage.pop();
 			int	num2 = _strage.top();
 			_strage.pop();
+			// 計算結果をstackにpushする
 			_strage.push(calculate(num2, num1, (*it)));
 		}
 	}
+	// スタックの要素数が1でない場合もエラー
 	if (_strage.size() != 1)
 		throw SyntaxErrorException();
 	std::cout << _strage.top() << std::endl;
