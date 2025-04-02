@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   BitcoinExchange.cpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hurabe <hurabe@student.42.fr>              +#+  +:+       +#+        */
+/*   By: urabex <urabex@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/27 16:36:59 by hurabe            #+#    #+#             */
-/*   Updated: 2025/03/30 22:33:21 by hurabe           ###   ########.fr       */
+/*   Updated: 2025/04/02 14:34:55 by urabex           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,12 @@ bool BitcoinExchange::parseDateTime(const std::string &date, std::tm &time) cons
 	return (true);
 }
 
-// 日付バリデーション用の関数
+/*
+  日付バリデーション用の関数
+  mktime(&time)はtm構造体に入れられた年月日などをローカル時間に基づいたtime_t(UNIX時間)に変換する。
+  変換時に日付が実在しない場合は自動で補正される。つまり不正な日付だったことが検出できる。
+  
+*/
 bool BitcoinExchange::isValidDate(const std::string &date) const {
 	// 日付形式が不正な場合はfalse
 	if (date.length() != 10 || date.at(4) != '-' || date.at(7) != '-')
@@ -63,7 +68,11 @@ bool BitcoinExchange::isValidDate(const std::string &date) const {
 	if (t == -1)
 		return (false);
 
-	// 一応日付文字列と変換後の日付が同じであることを確認
+	/*
+	  一応日付文字列と変換後の日付が同じであることを確認
+	  mktimeによって補正されたtmを文字列に戻す
+	  元のdateと異なる場合は、補正が起きた＝不正な日付と判断できる
+	*/
 	char buf[11];
 	std::strftime(buf, sizeof(buf), "%Y-%m-%d", &time);
 
