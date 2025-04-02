@@ -3,59 +3,65 @@
 /*                                                        :::      ::::::::   */
 /*   PmergeMe.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hurabe <hurabe@student.42.fr>              +#+  +:+       +#+        */
+/*   By: urabex <urabex@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/27 19:49:48 by hurabe            #+#    #+#             */
-/*   Updated: 2025/03/30 22:50:46 by hurabe           ###   ########.fr       */
+/*   Updated: 2025/04/02 16:31:54 by urabex           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
-// vector → 処理が高速のため
-// deque → ペアでの処理がやりやすくなるため
 
 #ifndef PMERGEME_HPP
 #define PMERGEME_HPP
 
-// include
 #include <iostream>
-#include <vector>    // vectorコンテナ
-#include <algorithm> // sortなどのアルゴリズム用
-#include <cassert>   // デバッグなどのassert用
-#include <deque>     // dequeコンテナ
+#include <fstream>
+#include <sstream>
+#include <algorithm>
+#include <vector>
+#include <deque>
+#include <ctime>
+#include <cstdlib>
+#include <climits>
 
-// 比較関数カウント用
-//extern int g_counterVct;
-//extern int g_counterDeq;
+class PmergeMe {
+  private:
+    PmergeMe();
+    PmergeMe(const PmergeMe &src);
+    PmergeMe &operator=(const PmergeMe &src);
 
-/*
-  ペアの情報を保持する構造体
-  フォード・ジョンソンアルゴリズムでは、要素をペアとしてグループ化してソートするため
-*/
-struct pairs {
-	// ペアの数値(ペアの代表値として使用)
-	double num;
-	// 再帰的なペアのグループ化に使用する
-	std::vector<pairs> p;
+    std::vector<int> _vector;
+	  std::vector<int> _jacob;
+
+    std::deque<int> _deque;
+    std::deque<int> _jacob_deq;
+
+    bool is_ok_arg(std::string str);
+    int jacobsthal(int n);
+
+    void setContainers_vec(char **argv);
+    void setContainers_deq(char **argv);
+    void setJacob();
+    void setJacob_deq();
+    void set_mainchain_pend(std::vector<int>& vec, std::vector<int>& mainchain, std::vector<int>& pend);
+    void set_mainchain_pen_deq(std::deque<int>& vec, std::deque<int>& mainchain, std::deque<int>& pend);
+
+    void rearrange_vec(std::vector<int>& vec, std::vector<int>& indexes);
+    void rearrange_deq(std::deque<int>& vec, std::deque<int>& indexes);
+
+  public:
+    PmergeMe(char **argv);
+    ~PmergeMe();
+
+    void display_vec(std::string str);
+    void display_deq(std::string str);
+
+    void sort_vec();
+    void sort_deq();
+
+    void merge_insertion_sort(std::vector<int>& vec, std::vector<int>& indexes);
+    void merge_insertion_sort_deq(std::deque<int>& vec, std::deque<int>& indexes);
+    void binaryInsert(std::vector<int>& mainchain, std::vector<int>& pend, std::vector<int>& i_main, std::vector<int>& i_pend);
+    void binaryInsert_deq(std::deque<int>& mainchain, std::deque<int>& pend, std::deque<int>& i_main, std::deque<int>& i_pend);
 };
-
-// ソートされたペアの数列を出力する関数
-void	display(std::vector<pairs> vec);
-// FJAで各挿入段階のグループサイズを返す関数(nはグループ数)
-size_t	group_size(size_t n);
-// vectorに対する二分探索をする関数
-size_t	BS_vec(std::vector<pairs> res, size_t right, int value);
-// dequeに対する二分探索をする関数
-size_t	BS_deq(std::deque<pairs> res, size_t right, int value);
-
-/*
-  vector用のペアソート関数
-  vectorに格納されたペアをMerge-InsertionSortでソートする(MISと略す)
-*/
-std::vector<pairs> 	vector_sort(std::vector<pairs> vec);
-/*
-  deque用のペアソート関数
-  dequeに格納されたペアをMerge-Insertion Sortでソートする
-*/
-std::deque<pairs>	deque_sort(std::deque<pairs> deq);
 
 #endif
