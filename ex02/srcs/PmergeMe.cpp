@@ -6,7 +6,7 @@
 /*   By: urabex <urabex@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/27 19:49:52 by hurabe            #+#    #+#             */
-/*   Updated: 2025/04/02 16:10:03 by urabex           ###   ########.fr       */
+/*   Updated: 2025/04/03 16:13:21 by urabex           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,40 +14,47 @@
 
 #include "PmergeMe.hpp"
 
-void display_vec(std::vector<int> vec);
-void display_deque(std::deque<int> deq);
+/*
+  デバッグ用
+  // void display_vec(std::vector<int> vec);
+  // void display_deque(std::deque<int> deq);
+*/
 
+// デフォルトコンストラクタ
 PmergeMe::PmergeMe() {}
 
+// 引数として与えられた配列を使って処理を実行する
 PmergeMe::PmergeMe(char **argv) {
-    std::clock_t vec_start = std::clock();
-    setContainers_vec(argv);
-    setJacob();
-    sort_vec();
-    std::clock_t vec_end = std::clock();
+    std::clock_t vec_start = std::clock();  // vectorの処理時間計測を開始
+    setContainers_vec(argv);                // vectorにデータを格納する
+    setJacob();                             // Jacobsthal数列を生成する
+    sort_vec();                             // vectorに対してソート
+    std::clock_t vec_end = std::clock();    // vectorの処理時間計測を終了
 
-    std::clock_t deq_start = std::clock();
-    setContainers_deq(argv);
-    setJacob_deq();
-    sort_deq();
-    std::clock_t deq_end = std::clock();
+    std::clock_t deq_start = std::clock();  // dequeの処理時間計測を開始
+    setContainers_deq(argv);                // dequeにデータを格納する
+    setJacob_deq();                         // Jacobsthal数列を生成する
+    sort_deq();                             // dequeに対してソート
+    std::clock_t deq_end = std::clock();    // dequeの処理時間計測を終了
 
+	// 両コンテナの結果を出力
     display_vec("vector");
     display_deq("deque ");
 
+	// 処理時間をマイクロ秒に変換して出力
     double vec_duration = 1000000.0 * (vec_end - vec_start) / CLOCKS_PER_SEC;
     double deq_duration = 1000000.0 * (deq_end - deq_start) / CLOCKS_PER_SEC;
-
     std::cout << "Time to process a range of " << _vector.size() << " elements with std::vector : " << vec_duration << " us" << std::endl;
     std::cout << "Time to process a range of " << _vector.size() << " elements with std::deque : " << deq_duration << " us" << std::endl;
 }
 
+// コピーコンストラクタ
 PmergeMe::PmergeMe(const PmergeMe &src) {
     *this = src;
 }
 
-PmergeMe &PmergeMe::operator=(const PmergeMe &src)
-{
+// 代入演算子オーバーロード
+PmergeMe &PmergeMe::operator=(const PmergeMe &src) {
     if (this != &src) {
         this->_vector = src._vector;
         this->_deque = src._deque;
@@ -55,8 +62,10 @@ PmergeMe &PmergeMe::operator=(const PmergeMe &src)
     return *this;
 }
 
+// デストラクタ
 PmergeMe::~PmergeMe() {}
 
+// 文字列が正しい整数であるかどうかを判定する関数
 bool PmergeMe::is_ok_arg(std::string str) {
     if (str.empty())
         return false;
@@ -73,6 +82,7 @@ bool PmergeMe::is_ok_arg(std::string str) {
     return true;
 }
 
+// argvからvectorに値を格納する関数
 void PmergeMe::setContainers_vec(char **argv) {
     argv++;
     while (*argv) {
@@ -85,6 +95,7 @@ void PmergeMe::setContainers_vec(char **argv) {
     }
 }
 
+// Jacobsthal数列のn番目の値を再帰的に取得する関数
 int PmergeMe::jacobsthal(int n) {
 	if (n == 0)
 		return (0);
@@ -93,6 +104,7 @@ int PmergeMe::jacobsthal(int n) {
 	return (jacobsthal(n - 1) + 2 * jacobsthal(n - 2));
 }
 
+// vector用のJacobsthal数列を生成する関数
 void PmergeMe::setJacob() {
     int index = 2;
     size_t jcobstalIndex;
@@ -102,6 +114,7 @@ void PmergeMe::setJacob() {
     }
 }
 
+// vector用のマージ挿入ソートを実行する関数
 void PmergeMe::sort_vec() {
     std::vector<int> vec = _vector;
     std::vector<int> indexes;
@@ -109,6 +122,7 @@ void PmergeMe::sort_vec() {
     _vector = vec;
 }
 
+// vectorをmainchainとpendに分割する関数
 void PmergeMe::set_mainchain_pend(std::vector<int>& vec, std::vector<int>& mainchain, std::vector<int>& pend) {
     bool is_odd = vec.size() % 2 != 0;
 
@@ -121,12 +135,14 @@ void PmergeMe::set_mainchain_pend(std::vector<int>& vec, std::vector<int>& mainc
         pend.push_back(vec.back());
 }
 
+// indexesの順番に従ってvectorの要素を並び替える関数
 void PmergeMe::rearrange_vec(std::vector<int>& vec, std::vector<int>& indexes) {
     std::vector<int> tmp = vec;
     for (size_t i = 0; i < indexes.size(); i++)
         vec[i] = tmp[indexes[i]];
 }
 
+// vectorに対するマージ挿入ソートのメインロジック
 void PmergeMe::merge_insertion_sort(std::vector<int>& vec, std::vector<int>& indexes) {
     if (vec.size() <= 1)
         return ;
@@ -135,6 +151,7 @@ void PmergeMe::merge_insertion_sort(std::vector<int>& vec, std::vector<int>& ind
     std::vector<int>::iterator it_indexes = indexes.begin();
     bool indexes_empty = indexes.empty();
     
+	// 各ペアを降順に並び替え
     for (size_t i = 0; i < vec.size() / 2; i++) {
         if (*it_vec < *(it_vec + 1)) {
             std::iter_swap(it_vec, it_vec + 1);
@@ -146,16 +163,19 @@ void PmergeMe::merge_insertion_sort(std::vector<int>& vec, std::vector<int>& ind
             it_indexes += 2;
     }
 
+	// mainchainとpendに分割し再帰処理
     std::vector<int> mainchain, i_main, pend, i_pend, newIndexes;
     set_mainchain_pend(vec, mainchain, pend);
     if (!indexes_empty)
         set_mainchain_pend(indexes, i_main, i_pend);
     for (size_t i = 0; i < mainchain.size(); i++)
         newIndexes.push_back(i);
-
+	
     merge_insertion_sort(mainchain, newIndexes);
     // std::cout << "indexes: " << std::endl;
     // display_vec(indexes);
+	
+	// pendingの並びを再配置
     rearrange_vec(pend, newIndexes);
     if (!indexes_empty) {
         rearrange_vec(i_main, newIndexes);
@@ -165,16 +185,19 @@ void PmergeMe::merge_insertion_sort(std::vector<int>& vec, std::vector<int>& ind
     // std::cout << "before: " << std::endl;
     // display_vec(mainchain);
     // display_vec(pend);
+
+	// Jacobsthal順にpendingをmainchainへ挿入
     binaryInsert(mainchain, pend, i_main, i_pend);
+	
 	// std::cout << "after: " << std::endl;
     // display_vec(mainchain);
     // display_vec(pend);
     // std::cout << std::endl;
-
     vec = mainchain;
     indexes = i_main;
 }
 
+// vector用のJacobsthal数列の順に従ってpendingの要素をmainchainへ二分探索で挿入していく関数
 void PmergeMe::binaryInsert(std::vector<int>& mainchain, std::vector<int>& pend, std::vector<int>& i_main, std::vector<int>& i_pend) {
     std::vector<int>::iterator	it;
 
@@ -195,6 +218,7 @@ void PmergeMe::binaryInsert(std::vector<int>& mainchain, std::vector<int>& pend,
     }
 }
 
+// vectorの要素を表示
 void PmergeMe::display_vec(std::string str) {
     std::cout << str << ": ";
     for (size_t i = 0; i < _vector.size(); i++)
@@ -202,6 +226,9 @@ void PmergeMe::display_vec(std::string str) {
     std::cout << std::endl;
 }
 
+// ----------------------- 以下からdeque系の関数群 -----------------------
+
+// dequeの要素を表示
 void PmergeMe::display_deq(std::string str) {
     std::cout << str << ": ";
     for (size_t i = 0; i < _deque.size(); i++)
@@ -209,6 +236,7 @@ void PmergeMe::display_deq(std::string str) {
     std::cout << std::endl;
 }
 
+// argvからdequeに値を格納する関数
 void PmergeMe::setContainers_deq(char **argv) {
     argv++;
     while (*argv) {
@@ -221,6 +249,7 @@ void PmergeMe::setContainers_deq(char **argv) {
     }
 }
 
+// deque用のJacobsthal数列を生成する関数
 void PmergeMe::setJacob_deq() {
     int index = 2;
     size_t jcobstalIndex;
@@ -231,6 +260,7 @@ void PmergeMe::setJacob_deq() {
     }
 }
 
+// deque用のマージ挿入ソートを実行する関数
 void PmergeMe::sort_deq() {
     std::deque<int> deq = _deque;
     std::deque<int> indexes;
@@ -238,6 +268,7 @@ void PmergeMe::sort_deq() {
     _deque = deq;
 }
 
+// dequeをmainchainとpendに分割する関数
 void PmergeMe::set_mainchain_pen_deq(std::deque<int>& deq, std::deque<int>& mainchain, std::deque<int>& pend) {
     bool is_odd = deq.size() % 2 != 0;
 
@@ -250,12 +281,14 @@ void PmergeMe::set_mainchain_pen_deq(std::deque<int>& deq, std::deque<int>& main
         pend.push_back(deq.back());
 }
 
+// indexesの順番に従ってdequeの要素を並び替える関数
 void PmergeMe::rearrange_deq(std::deque<int>& deq, std::deque<int>& indexes) {
     std::deque<int> tmp = deq;
     for (size_t i = 0; i < indexes.size(); i++)
         deq[i] = tmp[indexes[i]];
 }
 
+// dequeに対するマージ挿入ソートのメインロジック
 void PmergeMe::merge_insertion_sort_deq(std::deque<int>& deq, std::deque<int>& indexes) {
     if (deq.size() <= 1)
         return ;
@@ -264,6 +297,7 @@ void PmergeMe::merge_insertion_sort_deq(std::deque<int>& deq, std::deque<int>& i
     std::deque<int>::iterator it_indexes = indexes.begin();
     bool indexes_empty = indexes.empty();
     
+	// 各ペアを降順に並び替え
     for (size_t i = 0; i < deq.size() / 2; i++) {
         if (*it_deq < *(it_deq + 1)) {
             std::iter_swap(it_deq, it_deq + 1);
@@ -275,6 +309,7 @@ void PmergeMe::merge_insertion_sort_deq(std::deque<int>& deq, std::deque<int>& i
             it_indexes += 2;
     }
 
+	// mainchainとpendに分割し再帰処理
     std::deque<int> mainchain, i_main, pend, i_pend, newIndexes;
     set_mainchain_pen_deq(deq, mainchain, pend);
     if (!indexes_empty)
@@ -285,16 +320,20 @@ void PmergeMe::merge_insertion_sort_deq(std::deque<int>& deq, std::deque<int>& i
     merge_insertion_sort_deq(mainchain, newIndexes);
     // std::cout << "indexes: " << std::endl;
     // display_deq(indexes);
+
+	// pendingの並びを再配置
     rearrange_deq(pend, newIndexes);
     if (!indexes_empty) {
         rearrange_deq(i_main, newIndexes);
         rearrange_deq(i_pend, newIndexes);
     }
+	// Jacobsthal順にpendingをmainchainへ挿入
     binaryInsert_deq(mainchain, pend, i_main, i_pend);
     deq = mainchain;
     indexes = i_main;
 }
 
+// deque用のJacobsthal数列の順に従ってpendingの要素をmainchainへ二分探索で挿入していく関数
 void PmergeMe::binaryInsert_deq(std::deque<int>& mainchain, std::deque<int>& pend, std::deque<int>& i_main, std::deque<int>& i_pend) {
     std::deque<int>::iterator	it;
 
