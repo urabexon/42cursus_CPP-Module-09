@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   PmergeMe.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hurabe <hurabe@student.42.fr>              +#+  +:+       +#+        */
+/*   By: urabex <urabex@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/10 22:16:07 by hurabe            #+#    #+#             */
-/*   Updated: 2025/04/11 17:01:18 by hurabe           ###   ########.fr       */
+/*   Updated: 2025/05/15 19:54:12 by urabex           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,3 +34,20 @@ PmergeMe &PmergeMe::operator=(const PmergeMe &src) {
 
 PmergeMe::~PmergeMe() {}
 
+void PmergeMe::validate(int ac, char **av) {
+	int num;
+	t_pairVct tmp;
+
+	// intに変換できて、正の整数（0含まない）か確認
+	for (int i = 1; i < ac; i++)
+	{
+		std::istringstream iss(av[i]);
+
+		iss >> num;
+		if (iss.fail() || !iss.eof() || num < 1)
+			throw ("Invalid element");
+
+		tmp.num = num;
+		_before.push_back(tmp);
+	}
+}
