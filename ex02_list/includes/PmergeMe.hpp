@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   PmergeMe.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hurabe <hurabe@student.42.fr>              +#+  +:+       +#+        */
+/*   By: urabex <urabex@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/10 22:15:40 by hurabe            #+#    #+#             */
-/*   Updated: 2025/04/11 16:57:08 by hurabe           ###   ########.fr       */
+/*   Updated: 2025/05/15 20:06:45 by urabex           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,8 @@
 #include <algorithm>
 #include <vector>
 #include <deque>
+
+# define DUMMY -1
 
 typedef struct s_pairVct {
 	int	num;
